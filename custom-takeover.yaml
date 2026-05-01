@@ -1,43 +1,30 @@
 id: custom-takeover
 
 info:
-  name: dnscope suspicious service disconnect review
+  name: Customer Takeover
   author: ethan
   severity: medium
-  description: |
-    flags a subdomain for review when it resolves through a cname
-    and the live response contains disconnected or unclaimed
-    service language.
-  tags:
-    - dnscope
-    - dns
-    - http
-    - review
-    - takeover
-    - misconfig
-
-dns:
-  - name: "{{FQDN}}"
-    type: CNAME
+  description: flags a url for review when it appears to return disconnected, unclaimed, or missing service language
+  metadata:
+    max-request: 1
+  tags: dnscope,takeover,review,misconfig,http
 
 http:
   - method: GET
     path:
       - "{{BaseURL}}"
+
     redirects: true
     max-redirects: 3
 
     matchers-condition: and
     matchers:
       - type: dsl
-        name: has-cname
         dsl:
-          - len(dns_cname) > 0
+          - Host != ip
 
       - type: word
-        name: disconnect-keywords
         part: body
-        condition: or
         words:
           - "this resource is unclaimed"
           - "resource is unclaimed"
@@ -50,12 +37,21 @@ http:
           - "deployment not found"
           - "unknown site"
           - "account suspended"
-          - "404There"
+          - "site unavailable"
+          - "application not found"
+          - "repository not found"
+          - "service not found"
+          - "not found"
+        condition: or
 
       - type: status
-        name: suspicious-status
         status:
           - 200
           - 403
           - 404
           - 410
+
+    extractors:
+      - type: dsl
+        dsl:
+          - cname
