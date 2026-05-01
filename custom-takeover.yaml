@@ -1,12 +1,12 @@
-id: dnscope-service-disconnect-review
+id: custom-takeover
 
 info:
   name: dnscope suspicious service disconnect review
   author: ethan
   severity: medium
   description: |
-    flags a subdomain for review when it appears to point to a provider-style
-    cname target and the live response contains disconnected or unclaimed
+    flags a subdomain for review when it resolves through a cname
+    and the live response contains disconnected or unclaimed
     service language.
   tags:
     - dnscope
@@ -30,9 +30,9 @@ http:
     matchers-condition: and
     matchers:
       - type: dsl
-        name: suspicious-cname-target
+        name: has-cname
         dsl:
-          - contains(trim_suffix(dns_cname, "."), "provider-lab.smelserphotography.art")
+          - len(dns_cname) > 0
 
       - type: word
         name: disconnect-keywords
