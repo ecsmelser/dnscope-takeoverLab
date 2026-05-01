@@ -50,6 +50,7 @@ http:
           - "deployment not found"
           - "unknown site"
           - "account suspended"
+          - "404"
 
       - type: status
         name: suspicious-status
