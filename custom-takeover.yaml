@@ -1,18 +1,20 @@
-id: custom-takeover
+id: dnscope-service-disconnect-review
 
 info:
-  name: dnscope suspicious service disconnect review high confidence
+  name: dnscope suspicious service disconnect review
   author: ethan
-  severity: high
+  severity: medium
   description: |
-    high-confidence review template for provider-style subdomains that return
-    a strongly suspicious unclaimed service fingerprint.
+    flags a subdomain for review when it appears to point to a provider-style
+    cname target and the live response contains disconnected or unclaimed
+    service language.
   tags:
     - dnscope
     - dns
     - http
     - review
     - takeover
+    - misconfig
 
 dns:
   - name: "{{FQDN}}"
@@ -22,23 +24,37 @@ http:
   - method: GET
     path:
       - "{{BaseURL}}"
+    redirects: true
+    max-redirects: 3
 
     matchers-condition: and
     matchers:
       - type: dsl
+        name: suspicious-cname-target
         dsl:
-          - contains(trim_suffix(dns_cname, "."), "missing-service.provider-lab.smelserphotography.art")
+          - contains(trim_suffix(dns_cname, "."), "provider-lab.smelserphotography.art")
 
       - type: word
+        name: disconnect-keywords
         part: body
         condition: or
         words:
           - "this resource is unclaimed"
+          - "resource is unclaimed"
           - "no such app"
+          - "project not found"
+          - "site not found"
+          - "resource not found"
+          - "service unavailable"
           - "there is no site here"
+          - "deployment not found"
+          - "unknown site"
+          - "account suspended"
 
       - type: status
+        name: suspicious-status
         status:
           - 200
+          - 403
           - 404
           - 410
