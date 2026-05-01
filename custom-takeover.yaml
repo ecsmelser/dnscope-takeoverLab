@@ -1,0 +1,44 @@
+id: custom-takeover
+
+info:
+  name: dnscope suspicious service disconnect review high confidence
+  author: ethan
+  severity: high
+  description: |
+    high-confidence review template for provider-style subdomains that return
+    a strongly suspicious unclaimed service fingerprint.
+  tags:
+    - dnscope
+    - dns
+    - http
+    - review
+    - takeover
+
+dns:
+  - name: "{{FQDN}}"
+    type: CNAME
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: and
+    matchers:
+      - type: dsl
+        dsl:
+          - contains(trim_suffix(dns_cname, "."), "missing-service.provider-lab.smelserphotography.art")
+
+      - type: word
+        part: body
+        condition: or
+        words:
+          - "this resource is unclaimed"
+          - "no such app"
+          - "there is no site here"
+
+      - type: status
+        status:
+          - 200
+          - 404
+          - 410
